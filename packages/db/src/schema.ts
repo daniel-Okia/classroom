@@ -81,7 +81,7 @@ export const sessions = pgTable('session', {
   id: id(), schoolId: schoolId(), enrolmentId: uuid('enrolment_id').notNull().references(() => packageEnrolments.id),
   date: date('date').notNull(), activeSeconds: integer('active_seconds').notNull().default(0),
   checkedInAt: timestamp('checked_in_at', { withTimezone: true }), clientKey: text('client_key').notNull(),
-}, (t) => [uniqueIndex('session_client_key').on(t.clientKey)]);   // idempotency for offline retries
+}, (t) => [uniqueIndex('session_client_key').on(t.schoolId, t.clientKey)]);   // idempotency for offline retries
 
 // Content: legacy and new tracks are separate level trees; topic_link cross-links them.
 export const levels = pgTable('level', { id: id(), track: trackEnum('track').notNull(), code: text('code').notNull(), name: text('name').notNull() });
@@ -102,7 +102,7 @@ export const quizzes = pgTable('quiz', { id: id(), topicId: uuid('topic_id').not
 export const attempts = pgTable('attempt', {
   id: id(), schoolId: schoolId(), quizId: uuid('quiz_id').notNull().references(() => quizzes.id), studentId: uuid('student_id').notNull().references(() => users.id),
   answers: jsonb('answers').notNull(), score: integer('score'), max: integer('max'), clientKey: text('client_key').notNull(), created: created(),
-}, (t) => [uniqueIndex('attempt_client_key').on(t.clientKey)]);
+}, (t) => [uniqueIndex('attempt_client_key').on(t.schoolId, t.clientKey)]);
 
 export const devotionEntries = pgTable('devotion_entry', {
   id: id(), day: integer('day').notNull(), reference: text('reference').notNull(), reflection: text('reflection').notNull(), question: text('question').notNull(),
@@ -127,7 +127,7 @@ export const parentRequests = pgTable('parent_request', {
   id: id(), schoolId: schoolId(), typeId: uuid('type_id').notNull().references(() => requestTypes.id), guardianId: uuid('guardian_id').notNull().references(() => users.id),
   childId: uuid('child_id').notNull().references(() => users.id), body: text('body').notNull(), status: requestStatusEnum('status').notNull().default('submitted'),
   assigneeId: uuid('assignee_id').references(() => users.id), dueAt: timestamp('due_at', { withTimezone: true }), clientKey: text('client_key').notNull(),
-}, (t) => [uniqueIndex('req_client_key').on(t.clientKey)]);
+}, (t) => [uniqueIndex('req_client_key').on(t.schoolId, t.clientKey)]);
 export const requestStatusHistory = pgTable('request_status_history', {
   id: id(), schoolId: schoolId(), requestId: uuid('request_id').notNull().references(() => parentRequests.id), status: requestStatusEnum('status').notNull(), actorId: uuid('actor_id').notNull().references(() => users.id), note: text('note'), at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
 });
@@ -135,7 +135,7 @@ export const messageThreads = pgTable('message_thread', { id: id(), schoolId: sc
 export const messages = pgTable('message', {
   id: id(), schoolId: schoolId(), threadId: uuid('thread_id').notNull().references(() => messageThreads.id), senderId: uuid('sender_id').notNull().references(() => users.id), body: text('body').notNull(),
   reportedAt: timestamp('reported_at', { withTimezone: true }), clientKey: text('client_key').notNull(), created: created(),
-}, (t) => [index('msg_thread').on(t.threadId), uniqueIndex('msg_client_key').on(t.clientKey)]);
+}, (t) => [index('msg_thread').on(t.threadId), uniqueIndex('msg_client_key').on(t.schoolId, t.clientKey)]);
 export const notificationPreferences = pgTable('notification_preference', {
   userId: uuid('user_id').primaryKey().references(() => users.id), channel: text('channel').notNull().default('in_app'), language: text('language').notNull().default('en'),
   quietFrom: text('quiet_from'), quietTo: text('quiet_to'), smsConsent: boolean('sms_consent').notNull().default(false),
@@ -157,3 +157,17 @@ export const otpCodes = pgTable('otp_code', {
 export const authSessions = pgTable('auth_session', {
   id: text('id').primaryKey(), userId: uuid('user_id').notNull().references(() => users.id), expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
 });
+
+// Teacher tasks, student submissions (text or photo), teacher marks
+export const tasks = pgTable('task', {
+  id: id(), schoolId: schoolId(), classId: uuid('class_id').notNull().references(() => classes.id), teacherId: uuid('teacher_id').notNull().references(() => users.id),
+  title: text('title').notNull(), instructions: text('instructions').notNull(), topicId: uuid('topic_id').references(() => topics.id), dueDate: date('due_date'), created: created(),
+});
+export const submissions = pgTable('submission', {
+  id: id(), schoolId: schoolId(), taskId: uuid('task_id').notNull().references(() => tasks.id), studentId: uuid('student_id').notNull().references(() => users.id),
+  answerText: text('answer_text'), photoKey: text('photo_key'), moderation: text('moderation').notNull().default('pending'), clientKey: text('client_key').notNull(), created: created(),
+}, (t) => [uniqueIndex('submission_client_key').on(t.schoolId, t.clientKey), uniqueIndex('submission_once').on(t.taskId, t.studentId)]);
+export const marks = pgTable('mark', {
+  id: id(), schoolId: schoolId(), submissionId: uuid('submission_id').notNull().references(() => submissions.id), markerId: uuid('marker_id').notNull().references(() => users.id),
+  score: integer('score').notNull(), max: integer('max').notNull(), comment: text('comment'), at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex('mark_once').on(t.submissionId)]);

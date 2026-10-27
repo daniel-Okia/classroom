@@ -20,6 +20,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@classroom/content':
+        specifier: workspace:*
+        version: link:../../packages/content
       '@classroom/core':
         specifier: workspace:*
         version: link:../../packages/core

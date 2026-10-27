@@ -1,5 +1,5 @@
 {
-  "id": "c4730383-10b5-42f1-917e-2679e58a01cd",
+  "id": "609322f2-9d6a-45d6-bc59-9f60555da152",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -166,6 +166,12 @@
         "attempt_client_key": {
           "name": "attempt_client_key",
           "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
             {
               "expression": "client_key",
               "isExpression": false,
@@ -1205,6 +1211,125 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.mark": {
+      "name": "mark",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "school_id": {
+          "name": "school_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "submission_id": {
+          "name": "submission_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "marker_id": {
+          "name": "marker_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "score": {
+          "name": "score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "max": {
+          "name": "max",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "comment": {
+          "name": "comment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "at": {
+          "name": "at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "mark_once": {
+          "name": "mark_once",
+          "columns": [
+            {
+              "expression": "submission_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "mark_school_id_school_id_fk": {
+          "name": "mark_school_id_school_id_fk",
+          "tableFrom": "mark",
+          "tableTo": "school",
+          "columnsFrom": [
+            "school_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "mark_submission_id_submission_id_fk": {
+          "name": "mark_submission_id_submission_id_fk",
+          "tableFrom": "mark",
+          "tableTo": "submission",
+          "columnsFrom": [
+            "submission_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "mark_marker_id_user_id_fk": {
+          "name": "mark_marker_id_user_id_fk",
+          "tableFrom": "mark",
+          "tableTo": "user",
+          "columnsFrom": [
+            "marker_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.message_thread": {
       "name": "message_thread",
       "schema": "",
@@ -1344,6 +1469,12 @@
         "msg_client_key": {
           "name": "msg_client_key",
           "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
             {
               "expression": "client_key",
               "isExpression": false,
@@ -1856,6 +1987,12 @@
         "req_client_key": {
           "name": "req_client_key",
           "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
             {
               "expression": "client_key",
               "isExpression": false,
@@ -2502,6 +2639,12 @@
           "name": "session_client_key",
           "columns": [
             {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
               "expression": "client_key",
               "isExpression": false,
               "asc": true,
@@ -2586,6 +2729,281 @@
           "tableTo": "level",
           "columnsFrom": [
             "level_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.submission": {
+      "name": "submission",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "school_id": {
+          "name": "school_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "task_id": {
+          "name": "task_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "student_id": {
+          "name": "student_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "answer_text": {
+          "name": "answer_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "photo_key": {
+          "name": "photo_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "moderation": {
+          "name": "moderation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "client_key": {
+          "name": "client_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "submission_client_key": {
+          "name": "submission_client_key",
+          "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "client_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "submission_once": {
+          "name": "submission_once",
+          "columns": [
+            {
+              "expression": "task_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "student_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "submission_school_id_school_id_fk": {
+          "name": "submission_school_id_school_id_fk",
+          "tableFrom": "submission",
+          "tableTo": "school",
+          "columnsFrom": [
+            "school_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "submission_task_id_task_id_fk": {
+          "name": "submission_task_id_task_id_fk",
+          "tableFrom": "submission",
+          "tableTo": "task",
+          "columnsFrom": [
+            "task_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "submission_student_id_user_id_fk": {
+          "name": "submission_student_id_user_id_fk",
+          "tableFrom": "submission",
+          "tableTo": "user",
+          "columnsFrom": [
+            "student_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.task": {
+      "name": "task",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "school_id": {
+          "name": "school_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "class_id": {
+          "name": "class_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "teacher_id": {
+          "name": "teacher_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "instructions": {
+          "name": "instructions",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "topic_id": {
+          "name": "topic_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "due_date": {
+          "name": "due_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "task_school_id_school_id_fk": {
+          "name": "task_school_id_school_id_fk",
+          "tableFrom": "task",
+          "tableTo": "school",
+          "columnsFrom": [
+            "school_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "task_class_id_class_id_fk": {
+          "name": "task_class_id_class_id_fk",
+          "tableFrom": "task",
+          "tableTo": "class",
+          "columnsFrom": [
+            "class_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "task_teacher_id_user_id_fk": {
+          "name": "task_teacher_id_user_id_fk",
+          "tableFrom": "task",
+          "tableTo": "user",
+          "columnsFrom": [
+            "teacher_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "task_topic_id_topic_id_fk": {
+          "name": "task_topic_id_topic_id_fk",
+          "tableFrom": "task",
+          "tableTo": "topic",
+          "columnsFrom": [
+            "topic_id"
           ],
           "columnsTo": [
             "id"

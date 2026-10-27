@@ -140,6 +140,17 @@ CREATE TABLE IF NOT EXISTS "level" (
 	"name" text NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "mark" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"school_id" uuid NOT NULL,
+	"submission_id" uuid NOT NULL,
+	"marker_id" uuid NOT NULL,
+	"score" integer NOT NULL,
+	"max" integer NOT NULL,
+	"comment" text,
+	"at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "message_thread" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"school_id" uuid NOT NULL,
@@ -289,6 +300,30 @@ CREATE TABLE IF NOT EXISTS "subject" (
 	"level_id" uuid NOT NULL,
 	"code" text NOT NULL,
 	"name" text NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "submission" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"school_id" uuid NOT NULL,
+	"task_id" uuid NOT NULL,
+	"student_id" uuid NOT NULL,
+	"answer_text" text,
+	"photo_key" text,
+	"moderation" text DEFAULT 'pending' NOT NULL,
+	"client_key" text NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "task" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"school_id" uuid NOT NULL,
+	"class_id" uuid NOT NULL,
+	"teacher_id" uuid NOT NULL,
+	"title" text NOT NULL,
+	"instructions" text NOT NULL,
+	"topic_id" uuid,
+	"due_date" date,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "topic_link" (
@@ -485,6 +520,24 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
+ ALTER TABLE "mark" ADD CONSTRAINT "mark_school_id_school_id_fk" FOREIGN KEY ("school_id") REFERENCES "public"."school"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "mark" ADD CONSTRAINT "mark_submission_id_submission_id_fk" FOREIGN KEY ("submission_id") REFERENCES "public"."submission"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "mark" ADD CONSTRAINT "mark_marker_id_user_id_fk" FOREIGN KEY ("marker_id") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
  ALTER TABLE "message_thread" ADD CONSTRAINT "message_thread_school_id_school_id_fk" FOREIGN KEY ("school_id") REFERENCES "public"."school"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
@@ -659,6 +712,48 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
+ ALTER TABLE "submission" ADD CONSTRAINT "submission_school_id_school_id_fk" FOREIGN KEY ("school_id") REFERENCES "public"."school"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "submission" ADD CONSTRAINT "submission_task_id_task_id_fk" FOREIGN KEY ("task_id") REFERENCES "public"."task"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "submission" ADD CONSTRAINT "submission_student_id_user_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "task" ADD CONSTRAINT "task_school_id_school_id_fk" FOREIGN KEY ("school_id") REFERENCES "public"."school"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "task" ADD CONSTRAINT "task_class_id_class_id_fk" FOREIGN KEY ("class_id") REFERENCES "public"."class"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "task" ADD CONSTRAINT "task_teacher_id_user_id_fk" FOREIGN KEY ("teacher_id") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "task" ADD CONSTRAINT "task_topic_id_topic_id_fk" FOREIGN KEY ("topic_id") REFERENCES "public"."topic"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
  ALTER TABLE "topic_link" ADD CONSTRAINT "topic_link_from_topic_topic_id_fk" FOREIGN KEY ("from_topic") REFERENCES "public"."topic"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
@@ -688,16 +783,19 @@ EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
-CREATE UNIQUE INDEX IF NOT EXISTS "attempt_client_key" ON "attempt" USING btree ("client_key");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "attempt_client_key" ON "attempt" USING btree ("school_id","client_key");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "audit_school_at" ON "audit_log" USING btree ("school_id","at");--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "class_join_code" ON "class" USING btree ("join_code");--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "enrol_unique" ON "enrolment" USING btree ("class_id","student_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "mark_once" ON "mark" USING btree ("submission_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "msg_thread" ON "message" USING btree ("thread_id");--> statement-breakpoint
-CREATE UNIQUE INDEX IF NOT EXISTS "msg_client_key" ON "message" USING btree ("client_key");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "msg_client_key" ON "message" USING btree ("school_id","client_key");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "otp_phone" ON "otp_code" USING btree ("phone");--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "pkgenrol_unique" ON "package_enrolment" USING btree ("package_id","student_id");--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "pcl_unique" ON "parent_child_link" USING btree ("guardian_id","child_id");--> statement-breakpoint
-CREATE UNIQUE INDEX IF NOT EXISTS "req_client_key" ON "parent_request" USING btree ("client_key");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "req_client_key" ON "parent_request" USING btree ("school_id","client_key");--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "school_join_code" ON "school" USING btree ("join_code");--> statement-breakpoint
-CREATE UNIQUE INDEX IF NOT EXISTS "session_client_key" ON "session" USING btree ("client_key");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "session_client_key" ON "session" USING btree ("school_id","client_key");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "submission_client_key" ON "submission" USING btree ("school_id","client_key");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "submission_once" ON "submission" USING btree ("task_id","student_id");--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "user_phone" ON "user" USING btree ("phone");
