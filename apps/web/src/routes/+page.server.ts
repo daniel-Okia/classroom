@@ -4,6 +4,8 @@ import { childrenOf, weekFor, classOverview, faithFor, pendingJoins, enrolmentFo
 import { verseOfTheDay } from '$lib/server/library';
 import { noticesForGuardian, myRequests } from '$lib/server/hub';
 import { enrolChild } from '$lib/server/study';
+import { db, schema } from '$lib/server/db';
+import { eq } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ locals }) => {
   if (!locals.user) throw redirect(303, '/login');
@@ -13,7 +15,8 @@ export const load: PageServerLoad = async ({ locals }) => {
   const doy = Math.floor((Date.now() - Date.UTC(new Date().getUTCFullYear(), 0, 0)) / 864e5);
   const verse = await verseOfTheDay(faith as any, doy);
   if (a.roles.includes('student')) {
-    return { mode: 'student' as const, name: locals.user.name, verse, week: await weekFor(a, a.id), enrolment: await enrolmentFor(a, a.id) };
+    const [me] = a.id === locals.user.id ? [{ name: locals.user.name }] : await db.select({ name: schema.users.name }).from(schema.users).where(eq(schema.users.id, a.id));
+    return { mode: 'student' as const, name: me?.name ?? locals.user.name, verse, week: await weekFor(a, a.id), enrolment: await enrolmentFor(a, a.id) };
   }
   if (a.roles.includes('guardian')) {
     const kids = await childrenOf(a);

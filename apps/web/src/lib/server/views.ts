@@ -3,7 +3,7 @@ import { studyStatus, type Actor } from '@classroom/core';
 import { inSchool, schema } from './db';
 import { mondayOf } from './ctx';
 
-const { parentChildLinks, users, packageEnrolments, holidayPackages, sessions, classes, enrolments, attempts, quizzes, topics, schoolSettings, joinRequests } = schema;
+const { parentChildLinks, users, packageEnrolments, holidayPackages, sessions, classes, enrolments, attempts, quizzes, topics, subjects, schoolSettings, joinRequests } = schema;
 
 /** Behind/on-track is only judged while the package is running. */
 const inWindow = (start: string, end: string) => { const t = new Date().toISOString().slice(0, 10); return t >= start && t <= end; };
@@ -34,8 +34,13 @@ export async function weekFor(actor: Actor, studentId: string) {
     const [p] = e ? await tx.select().from(holidayPackages).where(eq(holidayPackages.id, e.packageId)) : [];
     const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(Date.parse(w.start) + i * 864e5).toISOString().slice(0, 10); return rows.some((r) => r.date === d && r.checkedInAt); });
     const minutes = Math.round(rows.reduce((a, r) => a + r.activeSeconds, 0) / 60);
-    const scores = await tx.select({ score: attempts.score, max: attempts.max, topic: topics.name }).from(attempts).innerJoin(quizzes, eq(quizzes.id, attempts.quizId)).innerJoin(topics, eq(topics.id, quizzes.topicId)).where(eq(attempts.studentId, studentId));
-    return { days, minutes, goalHours: p?.weeklyHourGoal ?? 0, enrolled: !!e, studyDays: days.filter(Boolean).length, scores, dayIndex: w.dayIndex };
+    const scores = await tx.select({ score: attempts.score, max: attempts.max, topic: topics.name, subject: subjects.name }).from(attempts).innerJoin(quizzes, eq(quizzes.id, attempts.quizId)).innerJoin(topics, eq(topics.id, quizzes.topicId)).innerJoin(subjects, eq(subjects.id, topics.subjectId)).where(eq(attempts.studentId, studentId));
+    // Latest attempt per subject, as a percentage.
+    const latest = new Map<string, number>();
+    for (const r of scores) if (r.max) latest.set(r.subject, Math.round((r.score! / r.max) * 100));
+    const subjectScores = [...latest].map(([subject, pct]) => ({ subject, pct }));
+    let streak = 0; for (let i = w.dayIndex; i >= 0 && days[i]; i--) streak++;
+    return { days, minutes, goalHours: p?.weeklyHourGoal ?? 0, enrolled: !!e, studyDays: days.filter(Boolean).length, scores, subjectScores, streak, dayIndex: w.dayIndex, weekNo: p ? Math.max(1, Math.min(Math.ceil(((Date.now() - Date.parse(p.startDate)) / 864e5 + 1) / 7), Math.ceil(((Date.parse(p.endDate) - Date.parse(p.startDate)) / 864e5 + 1) / 7))) : 1, weeks: p ? Math.ceil(((Date.parse(p.endDate) - Date.parse(p.startDate)) / 864e5 + 1) / 7) : 1, slotMinutes: e?.slotStart && e.slotMinutes ? e.slotMinutes : null };
   });
 }
 
@@ -55,7 +60,8 @@ export async function classOverview(actor: Actor) {
         const rows = e ? await tx.select().from(sessions).where(and(eq(sessions.enrolmentId, e.id), gte(sessions.date, w.start), lte(sessions.date, w.end))) : [];
         const minutes = Math.round(rows.reduce((a, r) => a + r.activeSeconds, 0) / 60);
         const last = (await tx.select({ score: attempts.score, max: attempts.max }).from(attempts).where(eq(attempts.studentId, k.id))).at(-1);
-        students.push({ ...k, slot: e?.slotStart ?? null, minutes, goalHours: p?.weeklyHourGoal ?? 0, last: last ? Math.round((last.score! / last.max!) * 100) : null, status: !p ? 'not_started' as const : inWindow(p.startDate, p.endDate) ? studyStatus(minutes, p.weeklyHourGoal, w.dayIndex) : minutes > 0 ? 'on_track' as const : 'not_started' as const });
+        const today = new Date().toISOString().slice(0, 10);
+        students.push({ ...k, studiedToday: rows.some((r) => r.date === today && r.checkedInAt), slot: e?.slotStart ?? null, minutes, goalHours: p?.weeklyHourGoal ?? 0, last: last ? Math.round((last.score! / last.max!) * 100) : null, status: !p ? 'not_started' as const : inWindow(p.startDate, p.endDate) ? studyStatus(minutes, p.weeklyHourGoal, w.dayIndex) : minutes > 0 ? 'on_track' as const : 'not_started' as const });
       }
       out.push({ cls: c, students });
     }
