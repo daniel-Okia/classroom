@@ -1,0 +1,28 @@
+/* Classroom design tokens. Contrast ratios computed against WCAG 2.2 (see docs/05-design-system.md). */
+:root {
+  --green: #0B6E4F;      /* primary; white text on it = 6.25:1 */
+  --gold: #F2A900;       /* accent; INK text on it = 7.95:1 (never white) */
+  --ink: #14213D;        /* text */
+  --bg: #F4F7FB;
+  --surface: #FFFFFF;
+  --green-tint: #E3F1EB;
+  --gold-tint: #FFF5CC;
+  --line: #D5DDE8;
+  --kids-blue: #3B6BB0; --kids-purple: #6B46C1; --kids-rust: #B04A1E; /* white text >= 5.3:1 */
+  --font: "Nunito", system-ui, sans-serif;
+  --text: 1rem;          /* 16px minimum body */
+  --text-lg: 1.25rem; --text-xl: 1.625rem;
+  --tap: 44px;           /* minimum touch target; Kids Mode uses 72px */
+  --radius: 14px; --gap: 12px; --gutter: 16px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1626; --surface: #172238; --ink: #EAF0FA; --line: #2A3955;
+    --green: #3FB88F; --green-tint: #12322A; --gold-tint: #3A2F0A;
+  }
+}
+body { font: 400 var(--text)/1.55 var(--font); color: var(--ink); background: var(--bg); }
+.btn { min-height: var(--tap); padding: 0 20px; border-radius: var(--radius); font-weight: 800; }
+.btn-primary { background: var(--gold); color: var(--ink); }
+.btn-secondary { background: var(--surface); color: var(--green); border: 2px solid var(--green); }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }

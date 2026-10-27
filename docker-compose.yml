@@ -1,0 +1,14 @@
+# Local development only. Credentials here are throwaway dev values.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment: { POSTGRES_USER: classroom, POSTGRES_PASSWORD: classroom_dev, POSTGRES_DB: classroom }
+    ports: ["54329:5432"]
+  redis:
+    image: redis:7-alpine
+    ports: ["63799:6379"]
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment: { MINIO_ROOT_USER: classroom, MINIO_ROOT_PASSWORD: classroom_dev }
+    ports: ["9000:9000", "9001:9001"]

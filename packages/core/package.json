@@ -1,0 +1,2 @@
+{ "name": "@classroom/core", "version": "0.0.1", "type": "module", "main": "src/index.ts",
+  "scripts": { "test": "vitest run", "typecheck": "tsc -p ." } }

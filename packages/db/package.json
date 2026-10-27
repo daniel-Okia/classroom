@@ -1,0 +1,3 @@
+{ "name": "@classroom/db", "version": "0.0.1", "type": "module", "main": "src/schema.ts",
+  "scripts": { "typecheck": "tsc -p ." },
+  "dependencies": { "drizzle-orm": "0.36.4" }, "devDependencies": { "drizzle-kit": "0.28.1" } }

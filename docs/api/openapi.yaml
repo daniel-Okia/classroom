@@ -1,0 +1,80 @@
+openapi: 3.1.0
+info:
+  title: Classroom API
+  version: 0.1.0
+  description: |
+    Draft covering Phase 1 and the 4B hub. All routes require a session unless marked public.
+    Every route is authorised server-side via core `can()`; the school is derived from the session, never from the request body.
+    Mutating routes accept an `Idempotency-Key` header so offline outboxes can retry safely.
+servers: [{ url: /api/v1 }]
+components:
+  securitySchemes:
+    session: { type: apiKey, in: cookie, name: sid }
+  schemas:
+    Error: { type: object, required: [code, message], properties: { code: {type: string}, message: {type: string} } }
+security: [{ session: [] }]
+paths:
+  /auth/otp/request:   { post: { summary: Send phone OTP (public, rate limited), security: [] } }
+  /auth/otp/verify:    { post: { summary: Verify OTP and start session (public, rate limited), security: [] } }
+  /auth/logout:        { post: { summary: End session } }
+  /schools:            { post: { summary: Register a school (public; platform admin must verify), security: [] } }
+  /schools/{id}/verify: { post: { summary: Platform admin verifies school } }
+  /schools/{id}/settings: { get: {summary: Read}, patch: { summary: Languages and faith setting Full/Light/Off } }
+  /schools/{id}/join-poster.pdf: { get: { summary: Printable poster with QR and short code } }
+  /join/resolve:       { post: { summary: Resolve QR token or short code to a school/class; creates NO access, security: [] } }
+  /join/requests:      { post: { summary: Parent links a child; status pending }, get: { summary: School admin lists pending } }
+  /join/requests/{id}/decision: { post: { summary: School approves or rejects } }
+  /children/{id}/guardians: { get: {summary: List}, post: { summary: Add guardian with permissions (can_pay, can_view_results, can_message, may_collect) } }
+  /classes:            { get: {summary: List}, post: {summary: Create} }
+  /packages:           { get: {summary: List}, post: {summary: Create holiday package} }
+  /packages/{id}/enrol: { post: { summary: Enrol student; under-18 requires parent consent record } }
+  /enrolments/{id}/slot: { put: { summary: Choose daily 1-2 hour slot; system builds schedule } }
+  /schedule:           { get: { summary: Upcoming sessions for current user } }
+  /library/levels:     { get: { summary: Level > subject > topic tree, filter by track } }
+  /library/lessons/{id}: { get: { summary: Lesson Markdown+KaTeX } }
+  /library/packs/{packageId}: { get: { summary: Offline download manifest (ETag, checksums) } }
+  /library/search:     { get: { summary: Search (also available offline client-side) } }
+  /papers:             { get: { summary: Past papers by year/paper; link-out where not publishable } }
+  /insights/topics:    { get: { summary: 'Topic frequency. Response always includes label "Frequently tested, not a prediction."' } }
+  /sessions:           { post: { summary: Start session } }
+  /sessions/{id}/checkin: { post: { summary: Self-confirmed check-in; active time sent as heartbeat totals } }
+  /quizzes/{id}/attempts: { post: { summary: Submit attempt; objective items auto-marked } }
+  /submissions:        { post: { summary: Text or photo answer (moderated upload) } }
+  /submissions/{id}/mark: { post: { summary: Teacher marks and comments } }
+  /tasks:              { post: { summary: Teacher assigns task } }
+  /progress/children/{id}: { get: { summary: Study days, hours vs goal, scores (guardian or teacher scope) } }
+  /dashboard/class/{id}: { get: { summary: Teacher overview with statuses on_track|behind|not_started } }
+  /today:              { get: { summary: Unified parent feed } }
+  /announcements:      { get: {summary: List}, post: { summary: Compose to school/level/class/family; priority normal|important|emergency; scheduled send } }
+  /announcements/{id}/read: { post: { summary: Read receipt } }
+  /announcements/{id}/report: { get: { summary: Delivery and read report (staff) } }
+  /events:             { get: {summary: List}, post: {summary: Create} }
+  /events/{id}/rsvp:   { put: { summary: RSVP or consent by deadline } }
+  /events/{id}.ics:    { get: { summary: Add to phone calendar } }
+  /school-info:        { get: { summary: Profile, calendar, policies, requirements, verse (per faith setting) } }
+  /request-types:      { get: {summary: List}, post: {summary: School adds custom type} }
+  /requests:           { get: {summary: List with filters}, post: {summary: Submit} }
+  /requests/{id}/status: { post: { summary: submitted > seen > in_progress > resolved; appends history; assignee set } }
+  /threads:            { get: {summary: List}, post: {summary: Start parent-teacher or parent-office thread} }
+  /threads/{id}/messages: { get: {summary: List}, post: {summary: Send; visible to school admin} }
+  /messages/{id}/report: { post: { summary: Abuse report } }
+  /notification-preferences: { get: {summary: Read}, put: {summary: Channel, language, quiet hours; emergency overrides} }
+  /fees/items:         { get: {summary: List}, post: {summary: Define fee item (bursar)} }
+  /invoices:           { get: {summary: By child or class}, post: {summary: Create, bulk by class} }
+  /invoices/{id}/statement.pdf: { get: { summary: Statement (authorised guardians and finance only) } }
+  /payments:           { post: { summary: Start payment via provider hosted checkout; returns redirect } }
+  /payments/webhook/{provider}: { post: { summary: Signature-verified, idempotent, security: [] } }
+  /payments/{id}/receipt.pdf: { get: { summary: Receipt } }
+  /bursar/payments:    { post: { summary: Record cash or bank payment } }
+  /bursar/waivers:     { post: { summary: Request waiver or bursary; needs approval, audited } }
+  /bursar/refunds:     { post: { summary: Request refund; approval required } }
+  /bursar/reconciliation: { get: { summary: Daily reconciliation report } }
+  /results/assessments: { get: {summary: List}, post: {summary: Create} }
+  /results/assessments/{id}/upload: { post: { summary: CSV/Excel bulk upload with validation } }
+  /results/assessments/{id}/publish: { post: { summary: draft > reviewed > published; school release date } }
+  /results/children/{id}: { get: { summary: By term, guardian with results permission only } }
+  /results/children/{id}/report-card.pdf: { get: { summary: Branded PDF } }
+  /insights/school:    { get: { summary: Class and subject averages, may-need-support flags } }
+  /family/export:      { get: { summary: Parent exports family data } }
+  /family/delete-request: { post: { summary: Parent requests deletion } }
+  /audit:              { get: { summary: Audit log (admin scopes only) } }

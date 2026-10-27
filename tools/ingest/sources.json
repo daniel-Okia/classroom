@@ -1,0 +1,15 @@
+{
+  "ncdc": {
+    "verdict": "INGEST",
+    "scope": "test-only",
+    "publishable": false,
+    "licence": "© NCDC, all rights reserved. Free public download. Used for local testing only; NOT to be published or served to users until written permission is obtained.",
+    "baseUrl": "https://ncdc.go.ug",
+    "indexPath": "/resource/",
+    "pageParam": "_page",
+    "maxPages": 31
+  },
+  "exinet": { "verdict": "LINK ONLY" },
+  "exoticnotes": { "verdict": "EXCLUDE" },
+  "yaaka": { "verdict": "EXCLUDE" }
+}
