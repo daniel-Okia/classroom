@@ -3,6 +3,10 @@ import { s as studyStatus } from "./schedule.js";
 import { i as inSchool, s as schema } from "./db.js";
 import { m as mondayOf } from "./ctx.js";
 const { parentChildLinks, users, packageEnrolments, holidayPackages, sessions, classes, enrolments, attempts, quizzes, topics, schoolSettings, joinRequests } = schema;
+const inWindow = (start, end) => {
+  const t = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+  return t >= start && t <= end;
+};
 const faithFor = async (schoolId) => (await inSchool(schoolId, (tx) => tx.select().from(schoolSettings)))[0]?.faith ?? "light";
 async function childrenOf(actor) {
   return inSchool(actor.schoolId, (tx) => tx.select({ id: users.id, name: users.name }).from(parentChildLinks).innerJoin(users, eq(users.id, parentChildLinks.childId)).where(eq(parentChildLinks.guardianId, actor.id)));
@@ -47,7 +51,7 @@ async function classOverview(actor) {
         const rows = e ? await tx.select().from(sessions).where(and(eq(sessions.enrolmentId, e.id), gte(sessions.date, w.start), lte(sessions.date, w.end))) : [];
         const minutes = Math.round(rows.reduce((a, r) => a + r.activeSeconds, 0) / 60);
         const last = (await tx.select({ score: attempts.score, max: attempts.max }).from(attempts).where(eq(attempts.studentId, k.id))).at(-1);
-        students.push({ ...k, slot: e?.slotStart ?? null, minutes, goalHours: p?.weeklyHourGoal ?? 0, last: last ? Math.round(last.score / last.max * 100) : null, status: p ? studyStatus(minutes, p.weeklyHourGoal, w.dayIndex) : "not_started" });
+        students.push({ ...k, slot: e?.slotStart ?? null, minutes, goalHours: p?.weeklyHourGoal ?? 0, last: last ? Math.round(last.score / last.max * 100) : null, status: !p ? "not_started" : inWindow(p.startDate, p.endDate) ? studyStatus(minutes, p.weeklyHourGoal, w.dayIndex) : minutes > 0 ? "on_track" : "not_started" });
       }
       out.push({ cls: c, students });
     }

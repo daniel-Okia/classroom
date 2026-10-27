@@ -54,7 +54,6 @@ declare module '$env/static/private' {
 	export const npm_config_globalconfig: string;
 	export const SSH_AUTH_SOCK: string;
 	export const __CF_USER_TEXT_ENCODING: string;
-	export const ALLOW_DRAFT_DEVOTIONS: string;
 	export const npm_execpath: string;
 	export const ELECTRON_RUN_AS_NODE: string;
 	export const PATH: string;
@@ -165,7 +164,6 @@ declare module '$env/dynamic/private' {
 		npm_config_globalconfig: string;
 		SSH_AUTH_SOCK: string;
 		__CF_USER_TEXT_ENCODING: string;
-		ALLOW_DRAFT_DEVOTIONS: string;
 		npm_execpath: string;
 		ELECTRON_RUN_AS_NODE: string;
 		PATH: string;

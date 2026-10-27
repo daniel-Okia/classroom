@@ -3,3 +3,5 @@ node_modules/
 data/raw/
 tools/ingest/.cache/
 .dev/
+build/
+.svelte-kit/
