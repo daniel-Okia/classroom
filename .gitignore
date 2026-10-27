@@ -5,3 +5,4 @@ tools/ingest/.cache/
 .dev/
 build/
 .svelte-kit/
+.vercel/

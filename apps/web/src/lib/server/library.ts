@@ -35,7 +35,11 @@ export async function loadContent(production = process.env.NODE_ENV === 'product
     const topicId = topicIds.get(`${l.track}/${l.level}/${l.subject}/${l.topic.toLowerCase()}`);
     if (!topicId) throw new Error(`${l.id}: topic "${l.topic}" not in taxonomy`);
     const [existing] = await db.select().from(lessons).where(and(eq(lessons.topicId, topicId), eq(lessons.title, l.title)));
-    if (existing) { await db.update(lessons).set({ bodyMd: l.body, review: l.review }).where(eq(lessons.id, existing.id)); continue; }
+    if (existing) {
+      await db.update(lessons).set({ bodyMd: l.body, review: l.review }).where(eq(lessons.id, existing.id));
+      await db.update(quizzes).set({ items: l.quiz }).where(eq(quizzes.topicId, topicId));
+      continue;
+    }
     const [res] = await db.insert(resources).values({ title: l.title, sourceUrl: null, licence: l.licence, verdict: 'ORIGINAL', publishable: l.publishable }).returning();
     await db.insert(lessons).values({ topicId, title: l.title, bodyMd: l.body, resourceId: res!.id, review: l.review });
     await db.insert(quizzes).values({ topicId, title: `${l.title}: check yourself`, items: l.quiz });

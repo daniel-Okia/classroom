@@ -4,7 +4,8 @@ import { sql } from 'drizzle-orm';
 import * as schema from '@classroom/db';
 
 const url = process.env.DATABASE_URL ?? 'postgres://app_user@127.0.0.1:54329/classroom';
-export const client = postgres(url, { max: 10, onnotice: () => {} });
+// Supabase's transaction pooler (port 6543) does not support prepared statements; serverless needs few connections per instance.
+export const client = postgres(url, { max: process.env.VERCEL ? 1 : 10, prepare: !/:6543\//.test(url), onnotice: () => {} });
 export const db = drizzle(client, { schema });
 export type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 

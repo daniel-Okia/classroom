@@ -13,8 +13,11 @@ export class AuthError extends Error { constructor(public code: string, msg: str
 
 const OTP_TTL_MS = 5 * 60_000, MAX_ATTEMPTS = 5, MAX_REQUESTS = 3, WINDOW_MS = 10 * 60_000;
 
-/** Send a 6-digit code. At most 3 per phone per 10 minutes. */
-export async function requestOtp(rawPhone: string): Promise<void> {
+/** Demo deployments only: DEMO_SHOW_OTP=1 returns the code so the login page can show it. Never active once an SMS provider is configured. */
+const demoShowsCode = () => process.env.DEMO_SHOW_OTP === '1' && !process.env.AT_API_KEY;
+
+/** Send a 6-digit code. At most 3 per phone per 10 minutes. Returns the code only in demo mode. */
+export async function requestOtp(rawPhone: string): Promise<string | undefined> {
   const phone = normalisePhone(rawPhone);
   if (!phone) throw new AuthError('bad_phone', 'Enter a valid Ugandan phone number.');
   const since = new Date(Date.now() - WINDOW_MS);
@@ -23,6 +26,7 @@ export async function requestOtp(rawPhone: string): Promise<void> {
   const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
   await db.insert(otpCodes).values({ phone, codeHash: h(phone + code), expiresAt: new Date(Date.now() + OTP_TTL_MS) });
   await sms.send(phone, `Your Classroom code is ${code}. It expires in 5 minutes.`);
+  return demoShowsCode() ? code : undefined;
 }
 
 /** Verify the code; creates the user on first login. Returns a session token for the cookie. */

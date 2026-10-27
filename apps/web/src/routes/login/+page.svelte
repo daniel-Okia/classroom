@@ -17,6 +17,7 @@
   <form method="post" action="?/verify" class="card">
     <input type="hidden" name="phone" value={form.phone} />
     <p class="ok">We sent a code to {form.phone}.</p>
+    {#if form.demoCode}<p class="muted" role="status">Demo site: no SMS is sent. Your code is <strong>{form.demoCode}</strong>.</p>{/if}
     <label for="code">6-digit code</label>
     <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required />
     <label for="name">Your name (first time only)</label>
