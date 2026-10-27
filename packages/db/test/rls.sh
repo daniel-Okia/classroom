@@ -5,7 +5,7 @@ export PATH=/Library/PostgreSQL/18/bin:$PATH
 M=$(cd "$(dirname "$0")/../migrations" && pwd)
 p() { psql -h 127.0.0.1 -p 54329 -v ON_ERROR_STOP=1 -q "$@"; }
 p -U dev -d postgres -c 'create database classroom_test' || exit 1
-p -U dev -d classroom_test -f $M/0000_nosy_giant_man.sql 2>&1 | grep -v NOTICE | tail -3
+p -U dev -d classroom_test -f $M/$(ls $M | grep "^0.*sql") 2>&1 | grep -v NOTICE | tail -3
 p -U dev -d classroom_test -f $M/rls.sql
 p -U dev -d classroom_test <<'SQL'
 create role app_user login nosuperuser;

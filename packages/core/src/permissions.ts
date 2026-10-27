@@ -64,7 +64,8 @@ export function can(actor: Actor, action: Action, res: Resource): boolean {
   const platformOnly = action === 'school.verify';
   if (!platformOnly) {
     if (actor.schoolId === null || res.schoolId === null || actor.schoolId !== res.schoolId) {
-      return action === 'join.request.create' && actor.roles.includes('guardian') && res.schoolId !== null;
+      // Any signed-in person (even with no role yet) may ask to join a school; this grants no access.
+      return action === 'join.request.create' && res.schoolId !== null && actor.schoolId === null;
     }
   } else {
     return actor.roles.includes('platform_admin');

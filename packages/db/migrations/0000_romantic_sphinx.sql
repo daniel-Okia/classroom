@@ -40,6 +40,12 @@ CREATE TABLE IF NOT EXISTS "audit_log" (
 	"at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "auth_session" (
+	"id" text PRIMARY KEY NOT NULL,
+	"user_id" uuid NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "class" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"school_id" uuid NOT NULL,
@@ -159,6 +165,15 @@ CREATE TABLE IF NOT EXISTS "notification_preference" (
 	"quiet_from" text,
 	"quiet_to" text,
 	"sms_consent" boolean DEFAULT false NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "otp_code" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"phone" text NOT NULL,
+	"code_hash" text NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL,
+	"attempts" integer DEFAULT 0 NOT NULL,
+	"consumed" boolean DEFAULT false NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "package_enrolment" (
@@ -303,6 +318,7 @@ CREATE TABLE IF NOT EXISTS "user" (
 	"name" text NOT NULL,
 	"dob" date,
 	"locale" text DEFAULT 'en' NOT NULL,
+	"is_platform_admin" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
@@ -332,6 +348,12 @@ END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "attempt" ADD CONSTRAINT "attempt_student_id_user_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "auth_session" ADD CONSTRAINT "auth_session_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -672,6 +694,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS "class_join_code" ON "class" USING btree ("joi
 CREATE UNIQUE INDEX IF NOT EXISTS "enrol_unique" ON "enrolment" USING btree ("class_id","student_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "msg_thread" ON "message" USING btree ("thread_id");--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "msg_client_key" ON "message" USING btree ("client_key");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "otp_phone" ON "otp_code" USING btree ("phone");--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "pkgenrol_unique" ON "package_enrolment" USING btree ("package_id","student_id");--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "pcl_unique" ON "parent_child_link" USING btree ("guardian_id","child_id");--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "req_client_key" ON "parent_request" USING btree ("client_key");--> statement-breakpoint

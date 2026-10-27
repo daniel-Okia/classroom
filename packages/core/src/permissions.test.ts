@@ -41,6 +41,10 @@ describe('guardian flags', () => {
   it('is denied for a child they are not linked to', () => {
     expect(can(actor(['guardian']), 'progress.read', res({ childId: 'other' }))).toBe(false);
   });
+  it('a new user with no role can start a join request, but a member of another school cannot', () => {
+    expect(can(actor([], null), 'join.request.create', res({ schoolId: B }))).toBe(true);
+    expect(can(actor(['guardian'], A), 'join.request.create', res({ schoolId: B }))).toBe(false);
+  });
   it('can start a join request for any school (no access granted)', () => {
     expect(can(actor(['guardian'], null), 'join.request.create', res({ schoolId: B }))).toBe(true);
     expect(can(actor(['guardian'], null), 'progress.read', res({ schoolId: B }))).toBe(false);

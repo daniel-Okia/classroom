@@ -32,7 +32,7 @@ export const schoolSettings = pgTable('school_settings', {
 
 // Phone is the login. Stored normalised (E.164); never shown to other families.
 export const users = pgTable('user', {
-  id: id(), phone: text('phone'), name: text('name').notNull(), dob: date('dob'), locale: text('locale').notNull().default('en'),
+  id: id(), phone: text('phone'), name: text('name').notNull(), dob: date('dob'), locale: text('locale').notNull().default('en'), isPlatformAdmin: boolean('is_platform_admin').notNull().default(false),
   created: created(),
 }, (t) => [uniqueIndex('user_phone').on(t.phone)]);
 
@@ -148,3 +148,12 @@ export const consentLog = pgTable('consent_log', {
 export const auditLog = pgTable('audit_log', {
   id: id(), schoolId: uuid('school_id'), actorId: uuid('actor_id'), action: text('action').notNull(), target: text('target'), detail: jsonb('detail'), at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index('audit_school_at').on(t.schoolId, t.at)]);
+
+// Auth (no school_id: a phone number belongs to a person, not a school)
+export const otpCodes = pgTable('otp_code', {
+  id: id(), phone: text('phone').notNull(), codeHash: text('code_hash').notNull(), expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  attempts: integer('attempts').notNull().default(0), consumed: boolean('consumed').notNull().default(false),
+}, (t) => [index('otp_phone').on(t.phone)]);
+export const authSessions = pgTable('auth_session', {
+  id: text('id').primaryKey(), userId: uuid('user_id').notNull().references(() => users.id), expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+});
