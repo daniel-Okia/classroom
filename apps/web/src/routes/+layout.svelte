@@ -1,6 +1,6 @@
 <script lang="ts">
   import '../app.css';
-  import { page } from '$app/stores';
+  import { page, navigating } from '$app/stores';
   import { onMount } from 'svelte';
   import { flush } from '$lib/outbox';
   let { data, children } = $props();
@@ -26,6 +26,7 @@
   });
 </script>
 <a class="skip" href="#main">Skip to content</a>
+{#if $navigating}<div class="navbar" role="progressbar" aria-label="Loading page"></div>{/if}
 <div class="shell" class:staff>
   {#if staff}
     <aside class="side" aria-label="Sections">
@@ -34,7 +35,7 @@
       <div class="who">{data.user?.name}</div>
     </aside>
   {/if}
-  <main id="main">{@render children()}</main>
+  <main id="main" class:loading={!!$navigating} aria-busy={!!$navigating}>{@render children()}</main>
 </div>
 {#if data.user && nav.length}
   <nav class="bottom" aria-label="Main">

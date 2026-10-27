@@ -106,3 +106,9 @@ tbody tr{transition:background .12s}tbody tr:hover{background:var(--bg)}tbody tr
 .qtext{font-size:1.2rem;font-weight:800;line-height:1.35;margin:.3em 0 0}
 textarea.answer{min-height:170px;resize:vertical}
 .actions2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+
+/* instant feedback while the next page loads */
+.navbar{position:fixed;top:0;left:0;right:0;height:3px;z-index:50;background:linear-gradient(90deg,var(--green),var(--gold),var(--green));background-size:200% 100%;animation:slide 1s linear infinite;transform-origin:left;animation-name:slide,grow;animation-duration:1s,8s;animation-timing-function:linear,cubic-bezier(.1,.8,.2,1);animation-fill-mode:none,forwards}
+@keyframes slide{to{background-position:-200% 0}}@keyframes grow{from{transform:scaleX(.05)}to{transform:scaleX(.92)}}
+main{transition:opacity .15s}main.loading{opacity:.55;pointer-events:none}
+nav.bottom a:active,.side a:active{background:var(--green-tint);transform:scale(.97)}
