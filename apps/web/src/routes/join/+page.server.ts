@@ -2,9 +2,10 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { resolveJoin, createJoinRequest } from '$lib/server/schools';
 import { actorFor } from '$lib/server/auth';
+import { loginUrl } from '$lib/server/next';
 
 export const load: PageServerLoad = async ({ url, locals }) => {
-  if (!locals.user) throw redirect(303, `/login`);
+  if (!locals.user) throw redirect(303, loginUrl(url));
   const code = url.searchParams.get('c'); const qr = url.searchParams.get('t');
   const target = code || qr ? await resolveJoin({ code: code ?? undefined, qr: qr ?? undefined }) : null;
   return { target, code, notFound: !!(code || qr) && !target };

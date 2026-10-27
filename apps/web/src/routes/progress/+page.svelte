@@ -1,11 +1,12 @@
 <script lang="ts">
+  import PageHead from '$lib/ui/PageHead.svelte';
   import { hm, pct } from '$lib/format';
   let { data }: { data: any } = $props();
   const w = $derived(data.week);
   const DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 </script>
 <svelte:head><title>Progress · Classroom</title></svelte:head>
-<p class="eyebrow">Week {w.weekNo} of {w.weeks}</p><h1>Progress</h1>
+<PageHead eyebrow={`Week ${w.weekNo} of ${w.weeks}`} title="Progress" />
 <section class="card"><div class="row"><strong>Study days</strong><span class="muted">{hm(w.minutes)} of {w.goalHours}h goal</span></div>
   <div class="dots">{#each w.days as d, i}<div><span class:on={d} class:today={!d && i === w.dayIndex} class:future={!d && i > w.dayIndex}>{d ? '✓' : ''}</span>{DAYS[i]}</div>{/each}</div>
   <div class="bar" style="margin-top:8px"><i style={`width:${pct(w.minutes, w.goalHours)}%`}></i></div></section>

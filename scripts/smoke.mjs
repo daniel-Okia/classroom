@@ -119,7 +119,7 @@ const typeId = psql(`select id from request_type where school_id='${schoolId}' a
 await parent.act('/school?/request', { type: typeId, child: childId, body: 'Clinic visit Friday', key: 'smoke-r' });
 const reqId = psql(`select id from parent_request where school_id='${schoolId}'`);
 await admin.act('/school?/status', { id: reqId, status: 'seen' }); await admin.act('/school?/status', { id: reqId, status: 'in_progress', note: 'Noted' });
-page = await parent.html('/school'); ok(page.text.includes('in progress') && page.text.includes('Noted'), 'parent sees the request status trail');
+page = await parent.html('/school?tab=requests'); ok(page.text.includes('in progress') && page.text.includes('Noted'), 'parent sees the request status trail');
 await parent.act('/school?/request', { type: typeId, child: childId, body: 'Clinic visit Friday', key: 'smoke-r' });
 ok(psql(`select count(*) from parent_request where school_id='${schoolId}'`) === '1', 'duplicate request submission is ignored');
 

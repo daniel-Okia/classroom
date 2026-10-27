@@ -1,16 +1,19 @@
 <script lang="ts">
+  import PageHead from '$lib/ui/PageHead.svelte';
+  import Empty from '$lib/ui/Empty.svelte';
   let { data }: { data: any } = $props();
+  const ready = (n: any) => n.topics.filter((t: { hasLesson: boolean }) => t.hasLesson).length;
 </script>
 <svelte:head><title>Library · Classroom</title></svelte:head>
-<h1>Library</h1>
-<div class="row" role="tablist" aria-label="Curriculum">
-  <a class="btn {data.track === 'new' ? 'btn-primary' : 'btn-secondary'}" style="flex:1" href="?track=new" aria-current={data.track === 'new' ? 'true' : undefined}>New curriculum</a>
-  <a class="btn {data.track === 'legacy' ? 'btn-primary' : 'btn-secondary'}" style="flex:1" href="?track=legacy" aria-current={data.track === 'legacy' ? 'true' : undefined}>Older syllabus</a>
-</div>
+<PageHead eyebrow="Notes and quizzes" title="Library" />
+<nav class="seg" aria-label="Curriculum">
+  <a href="?track=new" aria-current={data.track === 'new' ? 'page' : undefined}>New curriculum</a>
+  <a href="?track=legacy" aria-current={data.track === 'legacy' ? 'page' : undefined}>Older syllabus</a>
+</nav>
 {#each data.tree as n}
-  <details class="card" open={n.topics.some((t: { hasLesson: boolean }) => t.hasLesson)}>
-    <summary><strong>{n.level} · {n.subject}</strong> <span class="muted">{n.topics.filter((t: { hasLesson: boolean }) => t.hasLesson).length} of {n.topics.length} topics ready</span></summary>
-    <ul style="padding-left:1.1em">{#each n.topics as t}
-      <li>{#if t.hasLesson}<a href={`/learn/${t.id}`}>{t.name}</a>{:else}<span class="muted">{t.name} · coming soon</span>{/if}</li>{/each}</ul>
+  <details class="card" open={ready(n) > 0}>
+    <summary class="row"><strong>{n.level} · {n.subject}</strong><span class="chip">{ready(n)} of {n.topics.length} ready</span></summary>
+    <ul class="topics">{#each n.topics as t}
+      <li>{#if t.hasLesson}<a href={`/learn/${t.id}`}><span>{t.name}</span><span aria-hidden="true">→</span></a>{:else}<span class="soon"><span>{t.name}</span><small>Coming soon</small></span>{/if}</li>{/each}</ul>
   </details>
-{:else}<p class="card">No content has been loaded yet.</p>{/each}
+{:else}<Empty title="No content yet">Lessons will appear here once they are added.</Empty>{/each}

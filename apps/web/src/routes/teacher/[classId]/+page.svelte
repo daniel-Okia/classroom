@@ -1,19 +1,30 @@
 <script lang="ts">
+  import { enhance } from '$app/forms';
+  import PageHead from '$lib/ui/PageHead.svelte';
+  import Flash from '$lib/ui/Flash.svelte';
+  import Tabs from '$lib/ui/Tabs.svelte';
+  import Empty from '$lib/ui/Empty.svelte';
+  import { page } from '$app/stores';
   let { data, form }: { data: any; form: any } = $props();
+  const tab = $derived($page.url.searchParams.get('tab') ?? 'review');
 </script>
-<h1>Tasks and marking</h1>
-{#if form?.error}<p class="err" role="alert">{form.error}</p>{/if}{#if form?.assigned}<p class="ok">Task assigned.</p>{/if}
-<form method="post" action="?/assign" class="card"><h2 style="margin-top:0">Assign a task</h2>
+<svelte:head><title>Tasks and marking · Classroom</title></svelte:head>
+<PageHead eyebrow="Class" title="Tasks and marking" back="/" backLabel="Overview" />
+<Flash error={form?.error} ok={form?.assigned ? 'Task assigned.' : null} />
+<Tabs tabs={[{ id: 'review', label: 'To review', count: data.queue.filter((q: any) => !q.markId).length }, { id: 'assign', label: 'Assign a task' }]} />
+{#if tab === 'assign'}
+<form method="post" action="?/assign" class="card">
   <label for="t">Title</label><input id="t" name="title" required /><label for="i">Instructions</label><textarea id="i" name="instructions" rows="4" required></textarea>
-  <label for="d">Due date (optional)</label><input id="d" name="due" type="date" /><button class="primary" style="margin-top:12px">Assign to class</button></form>
-<h2>To review</h2>
+  <label for="d">Due date (optional)</label><input id="d" name="due" type="date" /><button class="green" style="margin-top:14px">Assign to class</button></form>
+{:else}
 {#each data.queue as q}
   <section class="card"><div class="row"><strong>{q.student}</strong><span class="muted">{q.taskTitle}</span></div>
-    <p style="white-space:pre-wrap">{q.text ?? '(photo answer)'}</p>
-    {#if q.markId}<p class="pill">Marked</p>{/if}
-    <form method="post" action="?/mark"><input type="hidden" name="id" value={q.id} />
-      <div class="row"><div style="flex:1"><label for={`s${q.id}`}>Score</label><input id={`s${q.id}`} name="score" type="number" min="0" required /></div>
+    <p class="answerbox">{q.text ?? '(photo answer)'}</p>
+    {#if q.markId}<span class="chip">Marked</span>{/if}
+    <form method="post" action="?/mark" use:enhance><input type="hidden" name="id" value={q.id} />
+      <div class="row" style="align-items:flex-start"><div style="flex:1"><label for={`s${q.id}`}>Score</label><input id={`s${q.id}`} name="score" type="number" min="0" required /></div>
         <div style="flex:1"><label for={`m${q.id}`}>Out of</label><input id={`m${q.id}`} name="max" type="number" min="1" value="4" required /></div></div>
       <label for={`c${q.id}`}>Comment</label><textarea id={`c${q.id}`} name="comment" rows="2"></textarea>
-      <button class="primary" style="margin-top:8px">{q.markId ? 'Update mark' : 'Save mark'}</button></form></section>
-{:else}<p class="card">Nothing to review yet.</p>{/each}
+      <button class="green" style="margin-top:10px">{q.markId ? 'Update mark' : 'Save mark'}</button></form></section>
+{:else}<Empty title="Nothing to review yet">When students submit answers they appear here.</Empty>{/each}
+{/if}

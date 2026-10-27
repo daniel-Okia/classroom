@@ -1,14 +1,14 @@
-import { redirect, fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { childrenOf, weekFor, classOverview, faithFor, pendingJoins, enrolmentFor, openPackages } from '$lib/server/views';
 import { verseOfTheDay } from '$lib/server/library';
 import { noticesForGuardian, myRequests } from '$lib/server/hub';
 import { enrolChild } from '$lib/server/study';
-import { db, schema } from '$lib/server/db';
+import { db, schema, client } from '$lib/server/db';
 import { eq } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  if (!locals.user) throw redirect(303, '/login');
+  if (!locals.user) return { mode: 'public' as const };
   const a = locals.actor;
   if (!a?.schoolId) return { mode: a?.roles.includes('platform_admin') ? 'platform' : 'none' as const };
   const faith = await faithFor(a.schoolId);
@@ -24,7 +24,8 @@ export const load: PageServerLoad = async ({ locals }) => {
     return { mode: 'guardian' as const, verse, children, notices: (await noticesForGuardian(a).catch(() => [])).slice(0, 4), requests: (await myRequests(a)).slice(0, 3), packages: await openPackages(a) };
   }
   const isAdmin = a.roles.includes('school_admin');
-  return { mode: 'staff' as const, classes: await classOverview(a), pending: isAdmin ? (await pendingJoins(a)).length : 0, isAdmin };
+  const [sch] = await client`select verify_status from school where id = ${a.schoolId}`;
+  return { mode: 'staff' as const, classes: await classOverview(a), pending: isAdmin ? (await pendingJoins(a)).length : 0, isAdmin, verified: sch?.verify_status === 'verified', packageCount: (await openPackages(a)).length };
 };
 
 export const actions: Actions = {

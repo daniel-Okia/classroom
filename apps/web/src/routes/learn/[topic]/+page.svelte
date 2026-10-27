@@ -2,6 +2,8 @@
   import 'katex/dist/katex.min.css';
   import { onMount } from 'svelte';
   import { send, key } from '$lib/outbox';
+  import PageHead from '$lib/ui/PageHead.svelte';
+  import Steps from '$lib/ui/Steps.svelte';
   let { data }: { data: any } = $props();
   const steps = $derived([...(data.opening ? ['open'] : []), 'notes', 'practice', 'check', 'done']);
   let step = $state(0);
@@ -32,23 +34,23 @@
   const mins = $derived(Math.floor(seconds / 60));
 </script>
 <svelte:head><title>{data.title} · Classroom</title></svelte:head>
-<h1>{data.title}</h1>
-<div class="bar" aria-hidden="true"><i style={`width:${(step / (steps.length - 1)) * 100}%`}></i></div>
+<PageHead eyebrow="Lesson" title={data.title} back="/learn" backLabel="Library" />
+<Steps steps={steps.map((x) => ({ open: 'Moment', notes: 'Notes', practice: 'Practice', check: 'Quiz', done: 'Done' }[x] ?? x))} at={step} />
 
 {#if steps[step] === 'open'}
   <section class="card" aria-label="Opening moment">
-    <h2 style="margin-top:0">A quiet moment</h2>
+    <h2>A quiet moment</h2>
     {#if data.opening.verse}<p><strong>{data.opening.verse.reference}</strong></p>{/if}
     <p>{data.opening.prayer}</p>
-    <button class="primary" onclick={() => (step += 1)}>Begin</button>
+    <button class="green" onclick={() => (step += 1)}>Begin</button>
   </section>
 {:else if steps[step] === 'notes'}
-  {#each notes as s}<section class="card"><h2 style="margin-top:0">{s.title}</h2>{@html s.html}</section>{/each}
-  <button class="primary" onclick={() => (step += 1)}>Now practise</button>
+  {#each notes as s}<section class="card"><h2>{s.title}</h2>{@html s.html}</section>{/each}
+  <button class="green" onclick={() => (step += 1)}>Now practise</button>
 {:else if steps[step] === 'practice'}
-  {#if practice}<section class="card"><h2 style="margin-top:0">{practice.title}</h2>{@html practice.html}</section>{/if}
-  {#if checklist}<section class="card"><h2 style="margin-top:0">{checklist.title}</h2>{@html checklist.html}</section>{/if}
-  <button class="primary" onclick={() => (step += 1)}>{data.items.length ? 'Take the quiz' : 'Finish'}</button>
+  {#if practice}<section class="card"><h2>{practice.title}</h2>{@html practice.html}</section>{/if}
+  {#if checklist}<section class="card"><h2>{checklist.title}</h2>{@html checklist.html}</section>{/if}
+  <button class="green" onclick={() => (step += 1)}>{data.items.length ? 'Take the quiz' : 'Finish'}</button>
 {:else if steps[step] === 'check'}
   {#if !data.canSubmit}<p class="ok">You are previewing as an adult. Tap "Study as" on the Home screen to take the quiz as your child.</p>{/if}
   {#if failMsg}<p class="err" role="alert">{failMsg}</p>{/if}
@@ -57,17 +59,17 @@
       <fieldset class="card"><legend><strong>{i + 1}. {it.q}</strong></legend>
         {#each it.options as o, j}<label style="font-weight:400;display:flex;gap:10px;align-items:center;min-height:44px"><input type="radio" style="width:24px;min-height:24px" name={`q${i}`} value={j} checked={answers[i] === j} onchange={() => (answers[i] = j)} /> {o}</label>{/each}
       </fieldset>{/each}
-    <button class="primary" disabled={!data.canSubmit}>Submit my answers</button>
+    <button class="green" style="width:100%" disabled={!data.canSubmit}>Submit my answers</button>
   </form>
 {:else}
   <section class="card" aria-live="polite">
     {#if result}
-      <h2 style="margin-top:0">You scored {result.score} out of {result.max}</h2>
+      <h2>You scored {result.score} out of {result.max}</h2>
       <ul>{#each result.feedback as f, i}<li>{f.correct ? '✓' : '✗'} Question {i + 1}: {f.correct ? 'Well done.' : `The answer is ${f.right}.`} {f.explain}</li>{/each}</ul>
-    {:else if queued}<h2 style="margin-top:0">Saved on this phone</h2><p>You are offline. We will send your answers and mark them when you are back online.</p>
-    {:else}<h2 style="margin-top:0">Well done</h2>{/if}
+    {:else if queued}<h2>Saved on this phone</h2><p>You are offline. We will send your answers and mark them when you are back online.</p>
+    {:else}<h2>Well done</h2>{/if}
     <p class="muted">Active study time today in this lesson: {mins} min.</p>
-    {#if data.canSubmit && !checkedIn}<button class="primary" onclick={checkIn}>I studied today: check in</button>{:else if checkedIn}<p class="ok">{queued ? 'Check-in saved, it will sync later.' : 'Checked in. Great work today.'}</p>{/if}
+    {#if data.canSubmit && !checkedIn}<button class="green" onclick={checkIn}>I studied today: check in</button>{:else if checkedIn}<p class="ok">{queued ? 'Check-in saved, it will sync later.' : 'Checked in. Great work today.'}</p>{/if}
     <p><a class="btn btn-secondary" href="/learn">Back to library</a></p>
   </section>
 {/if}

@@ -1,10 +1,11 @@
 <script lang="ts">
+  import PageHead from '$lib/ui/PageHead.svelte';
   import { enhance } from '$app/forms';
   let { data, form }: { data: any; form: any } = $props();
   const k = () => (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()));
 </script>
 <svelte:head><title>Practice · Classroom</title></svelte:head>
-<p class="eyebrow">Practice</p><h1>Your tasks</h1>
+<PageHead eyebrow="Practice" title="Your tasks" />
 {#if form?.error}<p class="err" role="alert">{form.error}</p>{/if}{#if form?.saved}<p class="ok" role="status">Sent to your teacher. They will review it.</p>{/if}
 {#each data.tasks as t, i}
   <section class="card">

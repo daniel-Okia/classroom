@@ -1,9 +1,10 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
+import { loginUrl } from '$lib/server/next';
 import { registerSchool } from '$lib/server/schools';
 import { normalisePhone } from '$lib/server/phone';
 
-export const load: PageServerLoad = ({ locals }) => { if (!locals.user) throw redirect(303, '/login'); return {}; };
+export const load: PageServerLoad = ({ locals, url }) => { if (!locals.user) throw redirect(303, loginUrl(url)); return {}; };
 export const actions: Actions = {
   default: async ({ request, locals, cookies }) => {
     if (!locals.user) throw redirect(303, '/login');
