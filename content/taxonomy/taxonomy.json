@@ -1,0 +1,103 @@
+{
+ "_provenance": {
+  "note": "Topic names and ordering only, taken from NCDC syllabi downloaded for local testing. Prose is not copied. NCDC permission needed before public release (docs/decisions/0003).",
+  "sources": {
+   "new/S1/Mathematics": "Mathematics_Syllabus_compressed.pdf (Lower Secondary, 4-year syllabus)",
+   "new/S1/Biology": "Biology_Syllabus_compressed.pdf",
+   "legacy/P4/Mathematics": "P4_MATHEMATICS_SYLLABUS-1.pdf (2010)",
+   "legacy/P4/Integrated Science": "P4-Integrated-Science-Syllabus-1.pdf (2010)"
+  },
+  "verified_against_source": "new/S1/Mathematics extracted by script; others typed from overview tables and spot-checked once. Re-verify before launch."
+ },
+ "tracks": [
+  {
+   "track": "new",
+   "levels": [
+    {
+     "code": "S1",
+     "name": "Senior 1",
+     "subjects": [
+      {
+       "code": "mathematics",
+       "name": "Mathematics",
+       "topics": [
+        "Number Bases",
+        "Working with Integers",
+        "Fractions, Percentages and Decimals",
+        "Rectangular Cartesian Coordinates in 2- Dimensions",
+        "Geometric Constructions Skills",
+        "Sequence and patterns",
+        "Bearings",
+        "General and angle properties of geometric figures",
+        "Data collection and presentation",
+        "Reflection",
+        "Equation of lines and curves",
+        "Algebra 1",
+        "Business arithmetic",
+        "Time and time tables"
+       ]
+      },
+      {
+       "code": "biology",
+       "name": "Biology",
+       "topics": [
+        "Introduction to Biology",
+        "Cells",
+        "Classification",
+        "Insects",
+        "Flowering plants"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "track": "legacy",
+   "levels": [
+    {
+     "code": "P4",
+     "name": "Primary 4",
+     "subjects": [
+      {
+       "code": "mathematics",
+       "name": "Mathematics",
+       "topics": [
+        "Set concepts",
+        "Whole numbers",
+        "Operations on whole numbers",
+        "Patterns and sequences",
+        "Fractions",
+        "2-dimensional geometry",
+        "3-dimensional geometry",
+        "Data handling",
+        "Money",
+        "Time",
+        "Length, mass and capacity",
+        "Equations"
+       ]
+      },
+      {
+       "code": "integrated-science",
+       "name": "Integrated Science",
+       "topics": [
+        "Plant life",
+        "Growing crops",
+        "Weather changes around us",
+        "Personal hygiene",
+        "Our food",
+        "Human body organs",
+        "The teeth",
+        "Sanitation",
+        "Communicable intestinal diseases and worm infestation",
+        "Vectors and diseases",
+        "Accidents, poisoning and first aid",
+        "Keeping rabbits"
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

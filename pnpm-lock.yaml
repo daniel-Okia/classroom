@@ -70,6 +70,8 @@ importers:
         specifier: 2.1.8
         version: 2.1.8(@types/node@20.19.43)
 
+  packages/content: {}
+
   packages/core: {}
 
   packages/db:
