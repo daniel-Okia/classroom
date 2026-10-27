@@ -1,0 +1,2 @@
+# 0005 Service worker: SvelteKit native instead of Workbox
+Brief asked for Workbox. SvelteKit generates the exact build asset list for `$service-worker`, so a ~30-line worker gives app-shell precache plus network-first page caching without Workbox's extra bytes and a second build pipeline. Background Sync is not available on iOS/Firefox, so the outbox (src/lib/outbox.ts) flushes on page load and on the `online` event instead, with the same effect everywhere. Revisit if we need Workbox's routing or Background Sync on Android.

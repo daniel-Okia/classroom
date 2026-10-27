@@ -35,7 +35,7 @@ export interface Resolved { schoolId: string; schoolName: string; classId: strin
 
 /** Resolve a short code or QR token to a school/class. Grants NOTHING: it only says where a join request would go. */
 export async function resolveJoin(input: { code?: string; qr?: string }): Promise<Resolved | null> {
-  let rows;
+  let rows: any;
   if (input.qr) rows = await client`select * from school_by_qr_hash(${qrHash(input.qr)})`.then((r) => r.map((x) => ({ ...x, class_id: null, class_name: null })));
   else if (input.code) rows = await client`select * from resolve_join_code(${normaliseCode(input.code)})`;
   else return null;
@@ -87,9 +87,10 @@ export async function createClass(actor: Actor, name: string, level: string) {
   });
 }
 
-/** One-page A4 poster: school name, QR (opaque token), short code, how to start. The QR alone never grants access. */
-export async function posterPdf(origin: string, schoolName: string, token: string, code: string): Promise<Buffer> {
-  const png = await QRCode.toBuffer(`${origin}/join?t=${token}`, { width: 600, margin: 1 });
+/** One-page A4 poster: school name, QR , short code, how to start. The QR alone never grants access. */
+export async function posterPdf(origin: string, schoolName: string, code: string): Promise<Buffer> {
+  // The QR carries the join code (reprintable any time). It only opens the join form; approval is still required.
+  const png = await QRCode.toBuffer(`${origin}/join?c=${encodeURIComponent(code)}`, { width: 600, margin: 1 });
   const doc = new PDFDocument({ size: 'A4', margin: 50 });
   const chunks: Buffer[] = []; doc.on('data', (c) => chunks.push(c));
   const done = new Promise<Buffer>((r) => doc.on('end', () => r(Buffer.concat(chunks))));

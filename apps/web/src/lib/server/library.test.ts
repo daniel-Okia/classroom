@@ -42,6 +42,6 @@ describe('library', () => {
     process.env.ALLOW_DRAFT_DEVOTIONS = '1';
     expect(await verseOfTheDay('off', 1)).toBeNull();
     expect(Object.keys((await verseOfTheDay('light', 1))!)).toEqual(['reference']);
-    expect((await verseOfTheDay('full', 1))!.reflection).toBeTruthy();
+    expect((await verseOfTheDay('full', 1) as any).reflection).toBeTruthy();
   });
 });

@@ -85,7 +85,7 @@ describe('otp', () => {
 
 describe('poster', () => {
   it('renders a one-page PDF', async () => {
-    const pdf = await posterPdf('https://example.org', 'Test PS', 'tok', 'AAAA-BBBB');
+    const pdf = await posterPdf('https://example.org', 'Test PS', 'AAAA-BBBB');
     expect(pdf.subarray(0, 4).toString()).toBe('%PDF');
     expect((pdf.toString('latin1').match(/\/Type \/Page\b/g) ?? []).length).toBe(1);
   });
