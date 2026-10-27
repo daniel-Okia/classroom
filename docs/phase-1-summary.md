@@ -10,7 +10,7 @@
 - Offline: PWA manifest, service worker (app shell, visited pages), outbox that queues quiz answers and check-ins and replays them idempotently.
 - Teacher: class overview with statuses, assign tasks, review text submissions, marks and comments.
 - Hub: notices (audiences, priority, scheduling, read receipts), events with RSVP/consent and `.ics`, structured requests with status trail, parent-teacher/office messaging visible to admin with abuse reports, quiet-hours rules.
-- Quality: 92 core + 7 content + 22 web integration tests, 41 HTTP acceptance checks (`scripts/e2e.sh`), type-check clean, CI workflow, bundle budget check (client JS about 55 KB gzipped across all routes).
+- Quality: 92 core + 7 content + 24 web integration tests, 41 HTTP acceptance checks (`scripts/e2e.sh`), type-check clean, CI workflow, bundle budget check (client JS about 55 KB gzipped across all routes).
 
 ## Assumed
 - Every learner is treated as a minor for consent (so enrolment always records parent consent).
